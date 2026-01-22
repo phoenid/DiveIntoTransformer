@@ -1,6 +1,5 @@
 '''
 # 手撕transformer下载数据集
-123
 '''
 
 # Part1 第一步引入库函数,都是torchtext的子库
