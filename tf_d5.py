@@ -2,7 +2,6 @@
 
 '''
 # Part1 进行库的导入
-
 '''
 import torch
 from torch import nn
@@ -24,19 +23,19 @@ class Encoder(nn.Module):
         for i in range(nums_encoderblock):
             self.encoder_block_list.append(EncoderBlock(emd_size=emd_size,f_size=f_size,head=head,v_size=v_size,q_k_size=q_k_size))
 
-
     def forward(self,x): #输出是原始的没编码过的list，不定长，(batch_size,q_seq_len)都形成不了矩阵？
         # 前提此时的x已经是PAD过的矩阵。为(batch_size,q_seq_len)
 
         mask_pad=(x==PAD_IDX).unsqueeze(1) # (batch_size,1,q_seq_len)
-        mask_pad=mask_pad.expand(-1,mask_pad.size()[1],-1) # (batch_size,q_seq_len,q_seq_len)
-        # mask_pad=mask_pad
+        mask_pad=mask_pad.expand(-1,x.size()[1],-1) # (batch_size,q_seq_len,q_seq_len)
+        mask_pad=mask_pad
         # 进行编码
         x = self.emd(x) # (batch_size,seq_len,emd_size)
         output=x # (batch_size,seq_len,emd_size)
         for i in range(self.nums_encoderblock):
             output=self.encoder_block_list[i](output,mask_pad) # (batch_size,seq_len,emd_size)
         return output
+
 
 if __name__ == '__main__':
     # 取2个de句子转词ID序列

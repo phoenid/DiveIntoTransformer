@@ -94,6 +94,7 @@ def en_preprocess(en_sentence):
     ids=en_vocab(tokens)
     return tokens,ids
 
+
 if __name__ == '__main__':
     # 返回词表大小
     print('de vocab:', len(de_vocab))

@@ -36,6 +36,7 @@ class DecoderBlock(nn.Module):
             nn.Linear(f_size, emd_size)
         )
         self.norm3 = nn.LayerNorm(emd_size)
+
     def forward(self, x, encoder_z, mask_1, mask_2): # x(batch_size,q_seq_len,emd_size)
         # 掩码注意力机制
         z1=self.mask_multi_atten(x_q=x, x_k_v=x, mask_pad=mask_1) # (batch_size,q_seq_len,head*v_size)
@@ -54,6 +55,7 @@ class DecoderBlock(nn.Module):
         # 第三个残差归一化
         output3 = self.norm3(z3 + output2) # (batch_size,q_seq_len,emd_size)
         return output3
+
 
 if __name__ == '__main__':
     # 取2个de句子转词ID序列，输入给encoder
@@ -87,16 +89,11 @@ if __name__ == '__main__':
     print('encoder outputs:', enc_outputs.size())
 
     # 生成decoder所需的掩码
-    first_attn_mask = (dec_x_batch == PAD_IDX).unsqueeze(1).expand(dec_x_batch.size()[0], dec_x_batch.size()[1],
-                                                                   dec_x_batch.size()[1])  # 目标序列的pad掩码
-    first_attn_mask = first_attn_mask | torch.triu(torch.ones(dec_x_batch.size()[1], dec_x_batch.size()[1]),
-                                                   diagonal=1).bool().unsqueeze(0).expand(dec_x_batch.size()[0], -1,
-                                                                                          -1) # &目标序列的向后看掩码
+    first_attn_mask = (dec_x_batch == PAD_IDX).unsqueeze(1).expand(dec_x_batch.size()[0], dec_x_batch.size()[1], dec_x_batch.size()[1])  # 目标序列的pad掩码
+    first_attn_mask = first_attn_mask | torch.triu(torch.ones(dec_x_batch.size()[1], dec_x_batch.size()[1]), diagonal=1).bool().unsqueeze(0).expand(dec_x_batch.size()[0], -1, -1) # &目标序列的向后看掩码
     print('first_attn_mask:', first_attn_mask.size())
     # 根据来源序列的pad掩码，遮盖decoder每个Q对encoder输出K的注意力
-    second_attn_mask = (enc_x_batch == PAD_IDX).unsqueeze(1).expand(enc_x_batch.size()[0], dec_x_batch.size()[1],
-                                                                    enc_x_batch.size()[
-                                                                        1])  # (batch_size,target_len,src_len)
+    second_attn_mask = (enc_x_batch == PAD_IDX).unsqueeze(1).expand(enc_x_batch.size()[0], dec_x_batch.size()[1], enc_x_batch.size()[1])  # (batch_size,target_len,src_len)
     print('second_attn_mask:', second_attn_mask.size())
 
     first_attn_mask = first_attn_mask

@@ -2,7 +2,6 @@
 # 需要注意的是，多头输出后，先将其转化为emd，也就是输入时候的大小，所以需要一个线性层
 '''
 Part1引入相关的库
-
 '''
 import torch
 from torch import nn
@@ -32,7 +31,6 @@ class EncoderBlock(nn.Module):
         )
         # 归一化
         self.norm2 = nn.LayerNorm(emd_size)
-
 
     def forward(self,x,mask_pad): # (batch_size,q_seq_len,emd)
         # 多头

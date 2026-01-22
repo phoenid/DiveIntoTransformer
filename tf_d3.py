@@ -4,15 +4,6 @@
 输出：x为注意力值z,(batch_size,)
 '''
 
-"""
-1. 传入head=8,emd_size=128,q_k_size=256,v_size=512 （256和512有什么关系？）
-2. 使用nn.Linear来实现QKV由原来的维度变为8倍的维度
-3. 然后在QKV的最后一个维度中，使用reshape将head分出来，并使用transpose将其位置调整到第2个维度上
-4. 使用Attention公式，计算注意力，放在attend中
-5. 针对head这一维度，使用expand进行拓展再掩码，使用mask_pad(tensor)将atten中为0的数据替换为1e-9
-6. 最后将attend与v矩阵相乘，并转回原来的样子，即head放在第3个维度上，之后与最后一维度的数据相乘合并
-"""
-
 '''
 # Part1引入库函数
 '''
@@ -21,7 +12,6 @@ from torch import nn
 from tf_d1 import de_vocab,de_preprocess,train_dataset
 from tf_d2 import EmbeddingWithPosition
 import math
-
 
 '''
 需要注意的一点，无论是交叉还是子注意力，通过公式我们可以知道，三者要相乘，所以进行线性转化后的KQV，应该满足
@@ -41,6 +31,7 @@ class MultiHeadAttention(nn.Module):
         self.Wq=nn.Linear(emd_size,q_k_size*head)
         self.Wv=nn.Linear(emd_size,v_size*head)
         self.dropout=nn.Dropout(dropout_rate)
+
     def forward(self,x_q,x_k_v,mask_pad):
         # 第一步分头,得先变成头的倍数再分头
         # 为了更加通用与交叉注意力，所以，把kv输入同源保证seq_len相同

@@ -1,12 +1,5 @@
 # 该模块主要用于实现词嵌入，然后加上位置向量,也就是把每次词嵌入为每个向量，然后对其加上位置编码。
 # 当然前提是先把词list转为index。
-"""
-1.传入词典大小和编码层的维度大小，维度大小是由维度自行决定，这个维度和GPU内存读写机制有关，简单来说gpu读显存是一大块一大块读的，所以把维度设置成这个块size的倍数就会读取的更快。想了解详细可以查一下gpu tilling
-2.根据seq_max_len语句的长度来生成一个列向量
-3.根据列向量和公式来计算出位置编码的数据，这里注意公式中10000的幂次很大，需要用e^ln来优化
-4.根据奇偶位置不同，将位置编码数据填充到position_encoding中
-5.在前向传播时，将需要训练的语句数据与position_encoding相加，得出送入encoder的含有位置编码信息的3维tensor
-"""
 
 '''
 # Part1: 进行一些库的引入
@@ -30,7 +23,7 @@ class EmbeddingWithPosition(nn.Module):
         # 注意：参数可训练
         self.seq_emd=nn.Embedding(vocab_size,emd_size)
 
-        # 位置编码，为一个句子中的每个位置也进行编码，相一个位置的编码维度也为嵌入的维度，从而可以直接加
+        # 位置编码，为一个句子中的每个位置也进行编码，一个位置的编码维度也为嵌入的维度，从而可以直接相加
         # 这里我们得知道一个句子统一的长度是多少(seq_max_len)，从而便于对所有可能的位置编码,unsqueeze表示在某个地方添加一个维度,这里是为了便于嵌入，所以需要额外的维度
         position_idx=torch.arange(0,seq_max_len,dtype=torch.float).unsqueeze(-1) # (seq_max_len,1)
 
@@ -48,15 +41,11 @@ class EmbeddingWithPosition(nn.Module):
         position_encoding[:,0::2]=torch.sin(position_emd_fill)
         # 奇数为cos
         position_encoding[:,1::2]=torch.cos(position_emd_fill)
-        #TODO:register buffer 存储的参数不可训练
-        # 相对于不同tensor，随模型 .to(device)，出现在 state_dict()
-        # 不在model.parameters()，不会被 optimizer 更新，但会随模型保存、加载、迁移设备
-        # 如果想用register buffer的话，需要继承nn.Module
         self.register_buffer('position_encoding',position_encoding)
 
         # 用于防止过拟合的Dropout
-        #TODO: 为什么要除以1-dropout_rate?
         self.dropout=nn.Dropout(dropout_rate)
+
     # 前向传播
     def forward(self,x):
         # x(batch,seq_max_len)为输入,输出编码后的数据
@@ -64,6 +53,7 @@ class EmbeddingWithPosition(nn.Module):
         # 因为position_encoding的第二维是max_seq_len,所以我们只需要取其前面的作为位置嵌入编码
         x_emd_pos=x_emd+self.position_encoding.unsqueeze(0)[:,:x_emd.size()[1],:]
         return self.dropout(x_emd_pos)
+
 
 if __name__ == '__main__':
     # 初始化类编码
