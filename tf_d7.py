@@ -1,5 +1,12 @@
 # 该板块主要是对解码器进行串接，实现得到解码器部分
 # 输入为x,还没嵌入的，但是PAD好的输入，输出需要对注意力值进行线性转化和softmax，最后得到一个单维向量，长度为词库大小。
+
+"""
+1. 该模块主要就是把d6中的decoder block串联起来，得到decoder
+2. 首先定义block的数量、位置编码、decoder的list、以及结构图中右上角的linear和softmax层
+3. 在forward中首先定义两个mask1和mask2，然后将x通过位置编码后，将x通过decoder的list后，经过Linear和Softmax
+"""
+
 '''
 # Part1 导入库函数
 '''
