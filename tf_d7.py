@@ -33,7 +33,7 @@ class Decoder(nn.Module):
         # x(batch_size,q_sqen_len)
         # 首先对解码器输入的padding位置进行掩码设置。
         mask1=(x==PAD_IDX).unsqueeze(1) # (batch_size,1,q_seq_len)
-        mask1.expand(-1,x.size()[1],-1)  # (batch_size,q_seq_len,q_seq_len)
+        mask1=mask1.expand(-1,x.size()[1],-1)  # (batch_size,q_seq_len,q_seq_len)
         # 然后要对解码器的输入的上半部分也取True然后和mask1或一下(也就是符号|),注意True表示需要隐藏的位置。
         # 注意：torch.tril 和 torch.triu 的区别就是决定矩阵的上半部分(不包含对角线)还是下半部分(不包含对角线)置为0,diagonal=1,表示置0的区域向上移动一行
         mask1=mask1 | torch.triu(torch.ones(mask1.size()[-1],mask1.size()[-1]),diagonal=1).bool().unsqueeze(0).expand(mask1.size()[0],-1,-1)
@@ -42,8 +42,8 @@ class Decoder(nn.Module):
         # 然后对编码器的mask2进行掩码设置。在交叉注意力中，Padding 掩码的区域由K 和 V 的来源决定，
         # 而不是由Q 的来源决定。这确保了来自Q 的查询只关注K 中有效的信息位置。
 
-        mask2 = (encoder_x == PAD_IDX).unsqueeze(1) # (batch_size,1,q_seq_len)
-        mask2.expand(-1, encoder_x.size()[1], -1) # (batch_size,1,q_seq_len)
+        mask2=(encoder_x == PAD_IDX).unsqueeze(1) # (batch_size,1,q_seq_len)
+        mask2=mask2.expand(-1, encoder_x.size()[1], -1) # (batch_size,q_seq_len,q_seq_len)
 
         x=self.emd(x)  # (batch_size,q_sqen_len,emd)
 
