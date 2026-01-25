@@ -91,7 +91,7 @@ if __name__ == '__main__':
     print('dec_x_batch batch:', dec_x_batch.size())
 
     # Encoder编码,输出每个词的编码向量
-    enc = Encoder(vocab_size=len(de_vocab), emd_size=128, q_k_size=256, v_size=512, f_size=512, head=8, nums_encoderblock=3)
+    enc = Encoder(vocab_size=len(de_vocab), emd_size=128, q_k_size=256, v_size=512, f_size=512, head=8, nums_encoderblock=3, dropout_rate=0.1, seq_max_len=5000)
     enc_outputs = enc(enc_x_batch)
     print('encoder outputs:', enc_outputs.size())
 

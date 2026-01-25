@@ -13,7 +13,7 @@ from tf_d4 import EncoderBlock
 # Part2 定义编码器的这个类
 '''
 class Encoder(nn.Module):
-    def __init__(self,vocab_size,emd_size,head,q_k_size,v_size,f_size,nums_encoderblock=5):
+    def __init__(self,vocab_size,emd_size,head,q_k_size,v_size,f_size,nums_encoderblock=5,dropout_rate=0.1,seq_max_len=5000):
         super().__init__()
         self.nums_encoderblock=nums_encoderblock
         # 定义编码器
@@ -21,7 +21,7 @@ class Encoder(nn.Module):
         # encoder block
         self.encoder_block_list=[]
         for i in range(nums_encoderblock):
-            self.encoder_block_list.append(EncoderBlock(emd_size=emd_size,f_size=f_size,head=head,v_size=v_size,q_k_size=q_k_size))
+            self.encoder_block_list.append(EncoderBlock(emd_size=emd_size,f_size=f_size,head=head,v_size=v_size,q_k_size=q_k_size,dropout_rate=dropout_rate))
 
     def forward(self,x): #输出是原始的没编码过的list，不定长，(batch_size,q_seq_len)都形成不了矩阵？
         # 前提此时的x已经是PAD过的矩阵。为(batch_size,q_seq_len)
@@ -52,7 +52,6 @@ if __name__ == '__main__':
     print('batch:', batch.size())
 
     # Encoder编码
-    encoder = Encoder(vocab_size=len(de_vocab), emd_size=128, q_k_size=256, v_size=512, f_size=512, head=8,
-                      nums_encoderblock=3)
+    encoder = Encoder(vocab_size=len(de_vocab), emd_size=128, q_k_size=256, v_size=512, f_size=512, head=8,nums_encoderblock=3,dropout_rate=0.1,seq_max_len=5000)
     z = encoder.forward(batch)
     print('encoder outputs:', z.size())

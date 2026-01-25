@@ -21,7 +21,7 @@ from tf_d2 import EmbeddingWithPosition
 # Part2 设计解码器的类
 '''
 class Decoder(nn.Module):
-    def __init__(self, en_vocab_size, emd_size, nums_decoder_block, head, q_k_size, v_size, f_size):
+    def __init__(self, en_vocab_size, emd_size, nums_decoder_block, head, q_k_size, v_size, f_size, dropout_rate=0.1, seq_max_len=5000):
         super().__init__()
         self.nums_decoder_block=nums_decoder_block
         # 首先对x进行编码
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     print('dec_x_batch batch:', dec_x_batch.size())
 
     # Encoder编码,输出每个词的编码向量
-    enc = Encoder(vocab_size=len(de_vocab), emd_size=128, q_k_size=256, v_size=512, f_size=512, head=8, nums_encoderblock=3)
+    enc = Encoder(vocab_size=len(de_vocab), emd_size=128, q_k_size=256, v_size=512, f_size=512, head=8, nums_encoderblock=3,dropout_rate=0.1,seq_max_len=5000)
     enc_outputs = enc(enc_x_batch)
     print('encoder outputs:', enc_outputs.size())
 

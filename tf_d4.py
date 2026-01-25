@@ -12,11 +12,11 @@ import math
 
 
 class EncoderBlock(nn.Module):
-    def __init__(self,emd_size,f_size,head,v_size,q_k_size):
+    def __init__(self,emd_size,f_size,head,v_size,q_k_size,dropout_rate):
         super().__init__()
 
         # 第一个定义多头注意力机制
-        self.muli_atten=MultiHeadAttention(head=head,emd_size=emd_size,q_k_size=q_k_size,v_size=v_size)
+        self.muli_atten=MultiHeadAttention(head=head,emd_size=emd_size,q_k_size=q_k_size,v_size=v_size,dropout_rate=dropout_rate)
 
         # 第二个定义线性层转化为emd_size
 
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     # 用于module初始化嵌套
     encoder_list = []
     for i in range(5):
-        encoder_list.append(EncoderBlock(emd_size=128, f_size=256, head=8, v_size=512, q_k_size=256))
+        encoder_list.append(EncoderBlock(emd_size=128, f_size=256, head=8, v_size=512, q_k_size=256,dropout_rate=0.1))
 
     # forward输出
     output = emb_result
