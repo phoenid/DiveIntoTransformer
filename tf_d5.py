@@ -8,6 +8,7 @@ from torch import nn
 from tf_d2 import EmbeddingWithPosition
 from tf_d1 import de_vocab,train_dataset,de_preprocess,PAD_IDX
 from tf_d4 import EncoderBlock
+from tf_config import DEVICE
 
 '''
 # Part2 定义编码器的这个类
@@ -28,7 +29,7 @@ class Encoder(nn.Module):
 
         mask_pad=(x==PAD_IDX).unsqueeze(1) # (batch_size,1,q_seq_len)
         mask_pad=mask_pad.expand(-1,x.size()[1],-1) # (batch_size,q_seq_len,q_seq_len)
-        mask_pad=mask_pad
+        mask_pad=mask_pad.to(DEVICE)
         # 进行编码
         x = self.emd(x) # (batch_size,seq_len,emd_size)
         output=x # (batch_size,seq_len,emd_size)

@@ -9,6 +9,7 @@ from tf_d1 import de_vocab,de_preprocess,train_dataset
 from tf_d2 import EmbeddingWithPosition
 from tf_d3 import MultiHeadAttention
 import math
+from tf_config import DEVICE
 
 
 class EncoderBlock(nn.Module):
@@ -52,11 +53,11 @@ if __name__ == '__main__':
     # 准备1个batch
     emb = EmbeddingWithPosition(len(de_vocab), 128)
     de_tokens, de_ids = de_preprocess(train_dataset[0][0])  # 取de句子转词ID序列
-    de_ids_tensor = torch.tensor(de_ids, dtype=torch.long)
+    de_ids_tensor = torch.tensor(de_ids, dtype=torch.long).to(DEVICE)
     emb_result = emb(de_ids_tensor.unsqueeze(0))  # 转batch再输入模型
     print('emb_result:', emb_result.size())
 
-    attn_mask = torch.zeros((1, de_ids_tensor.size()[0], de_ids_tensor.size()[0]))  # batch中每个样本对应1个注意力矩阵
+    attn_mask = torch.zeros((1, de_ids_tensor.size()[0], de_ids_tensor.size()[0])).to(DEVICE)  # batch中每个样本对应1个注意力矩阵
 
     # 用于module初始化嵌套
     encoder_list = []

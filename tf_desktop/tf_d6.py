@@ -17,6 +17,7 @@ from tf_d3 import MultiHeadAttention
 from tf_d1 import train_dataset,de_preprocess,de_vocab,en_preprocess,en_vocab,PAD_IDX
 from tf_d2 import EmbeddingWithPosition
 from tf_d5 import Encoder
+from tf_config import DEVICE
 
 '''
 # Part2 写个类，实现EncoderBlock
@@ -78,7 +79,7 @@ if __name__ == '__main__':
     elif len(de_ids1) > len(de_ids2):
         de_ids2.extend([PAD_IDX] * (len(de_ids1) - len(de_ids2)))
 
-    enc_x_batch = torch.tensor([de_ids1, de_ids2], dtype=torch.long)
+    enc_x_batch = torch.tensor([de_ids1, de_ids2], dtype=torch.long).to(DEVICE)
     print('enc_x_batch batch:', enc_x_batch.size())
 
     # en句子组成batch并padding对齐
@@ -87,7 +88,7 @@ if __name__ == '__main__':
     elif len(en_ids1) > len(en_ids2):
         en_ids2.extend([PAD_IDX] * (len(en_ids1) - len(en_ids2)))
 
-    dec_x_batch = torch.tensor([en_ids1, en_ids2], dtype=torch.long)
+    dec_x_batch = torch.tensor([en_ids1, en_ids2], dtype=torch.long).to(DEVICE)
     print('dec_x_batch batch:', dec_x_batch.size())
 
     # Encoder编码,输出每个词的编码向量
