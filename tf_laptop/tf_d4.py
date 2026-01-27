@@ -12,22 +12,23 @@ ref: https://www.bilibili.com/video/BV1hqpjzrEmT、https://www.bilibili.com/vide
 
 '''
 Part1引入相关的库
-
 '''
 import torch
 from torch import nn
-from tf_d1 import de_vocab,de_preprocess,train_dataset
+from tf_d1_5090 import de_vocab,de_preprocess,train_dataset
 from tf_d2 import EmbeddingWithPosition
 from tf_d3 import MultiHeadAttention
 import math
 
+from tf_config import DEVICE
+torch.set_default_device(DEVICE)
 
 class EncoderBlock(nn.Module):
-    def __init__(self,emd_size,f_size,head,v_size,q_k_size):
+    def __init__(self,emd_size,f_size,head,v_size,q_k_size,dropout_rate):
         super().__init__()
 
         # 第一个定义多头注意力机制
-        self.muli_atten=MultiHeadAttention(head=head,emd_size=emd_size,q_k_size=q_k_size,v_size=v_size)
+        self.muli_atten=MultiHeadAttention(head=head,emd_size=emd_size,q_k_size=q_k_size,v_size=v_size,dropout_rate=dropout_rate)
 
         # 第二个定义线性层转化为emd_size
 
@@ -42,7 +43,6 @@ class EncoderBlock(nn.Module):
         )
         # 归一化
         self.norm2 = nn.LayerNorm(emd_size)
-
 
     def forward(self,x,mask_pad): # (batch_size,q_seq_len,emd)
         # 多头
@@ -68,15 +68,15 @@ if __name__ == '__main__':
     emb_result = emb(de_ids_tensor.unsqueeze(0))  # 转batch再输入模型
     print('emb_result:', emb_result.size())
 
-    attn_mask = torch.zeros((1, de_ids_tensor.size()[0], de_ids_tensor.size()[0]))  # batch中每个样本对应1个注意力矩阵 (1, de_ids_tensor.size, de_ids_tensor.size)
+    attn_mask = torch.zeros((1, de_ids_tensor.size()[0], de_ids_tensor.size()[0]))  # batch中每个样本对应1个注意力矩阵
 
     # 用于module初始化嵌套
     encoder_list = []
     for i in range(5):
-        encoder_list.append(EncoderBlock(emd_size=128, f_size=256, head=8, v_size=512, q_k_size=256))
+        encoder_list.append(EncoderBlock(emd_size=128, f_size=256, head=8, v_size=512, q_k_size=256,dropout_rate=0.1))
 
     # forward输出
-    output = emb_result  # (1, de_ids_tensor.size, emd_size)
+    output = emb_result
     for i in range(5):
         output = encoder_list[i](output, attn_mask)
     print('encoder_outputs:', output.size())
