@@ -10,18 +10,16 @@ from torch.utils.data import Dataset, DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from tf_config import SEQ_MAX_LEN, DEVICE
 
-torch.set_default_device(DEVICE)
-print("empty:", torch.empty(1).device)
-print("randperm:", torch.randperm(3).device)
+torch.set_default_device("cpu")
+# torch.set_default_device(DEVICE)
+# print("empty:", torch.empty(1).device)
+# print("randperm:", torch.randperm(3).device)
 
 '''
 # Part2 设计一个dataset数据集，继承于Dataset,dataset需要实现的功能
 # 1. 在初始化就要初始化好训练集和测试集合。目前比较简单只有训练数据，所以初始化的时候只需要设计两个list，作为输入和输出就行。
 # 2. 需要设计一些函数，返回数据集的一些信息，比如数据集的长度，等等
-
 '''
-
-
 class DeEnDataset(Dataset):
     def __init__(self):
         super().__init__()
@@ -40,7 +38,6 @@ class DeEnDataset(Dataset):
             self.enc_x.append(de_ids)
             self.dec_x.append(en_ids)
 
-
     # 获取长度
     def __len__(self):
         return len(self.enc_x)
@@ -48,6 +45,7 @@ class DeEnDataset(Dataset):
     # 获取对应元素
     def __getitem__(self, index):
         return self.enc_x[index], self.dec_x[index]
+
 
 def collate_fn(batch):
     enc_index_batch = []
@@ -70,7 +68,6 @@ def collate_fn(batch):
 '''
 # Part4 测试，真正开始训练
 '''
-
 if __name__ == '__main__':
     dataset = DeEnDataset()
 
@@ -106,7 +103,14 @@ if __name__ == '__main__':
         )
 
     # device = DEVICE
-    # transformer = transformer.to(device)
+    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    transformer = transformer.to(DEVICE)
+
+    # 自检：如果这里打印出东西，就说明还有层没被注册/没上GPU
+    # for name, p in transformer.named_parameters():
+    #     if p.device != device:
+    #         print("PARAM NOT ON DEVICE:", name, p.device)
+    #         break
 
     # 初始化损失
     loss_fn = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
@@ -124,8 +128,8 @@ if __name__ == '__main__':
         loss_sum = 0
         for pad_enc_x, pad_dec_x in dataloader:
             # 这里一个去掉第一个词，一个去掉最后一个词，有说法的(所以相当于预测每下个词的概率)
-            # pad_enc_x = pad_enc_x.to(device, non_blocking=True)
-            # pad_dec_x = pad_dec_x.to(device, non_blocking=True)
+            pad_enc_x = pad_enc_x.to(DEVICE, non_blocking=True)
+            pad_dec_x = pad_dec_x.to(DEVICE, non_blocking=True)
             real_dec_z = pad_dec_x[:, 1:]  # decoder正确输出
             pad_dec_x = pad_dec_x[:, :-1]  # decoder实际输入
             dec_z = transformer(pad_enc_x, pad_dec_x)  # decoder实际输出

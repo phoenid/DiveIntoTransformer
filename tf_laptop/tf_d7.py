@@ -41,8 +41,19 @@ class Decoder(nn.Module):
         # 然后要对解码器的输入的上半部分也取True然后和mask1或一下(也就是符号|),注意True表示需要隐藏的位置。
         # 注意：torch.tril 和 torch.triu 的区别就是决定矩阵的上半部分(不包含对角线)还是下半部分(不包含对角线)置为0,diagonal=1,表示置0的区域向上移动一行
 
+        '''
+        decoder 里的 causal mask（上三角）在 CPU 上创建了，但 mask1 在 GPU（cuda:0）上，所以 mask1 | ... 直接炸。torch.ones(...) 默认在 CPU，所以 triu 结果也在 CPU。
+        '''
         # mask1=mask1 | torch.triu(torch.ones(mask1.size()[-1],mask1.size()[-1]),diagonal=1).bool().unsqueeze(0).expand(mask1.size()[0],-1,-1)
 
+        '''
+        把注释中 torch.ones(...) 改成在 mask1 同一个 device 上创建：
+        '''
+        tri = torch.triu(
+            torch.ones((mask1.size(-1), mask1.size(-1)), device=mask1.device, dtype=torch.bool),
+            diagonal=1
+        )
+        mask1 = mask1 | tri.unsqueeze(0).expand(mask1.size(0), -1, -1)
 
         # 然后对编码器的mask2进行掩码设置。在交叉注意力中，Padding 掩码的区域由K 和 V 的来源决定，
         # 而不是由Q 的来源决定。这确保了来自Q 的查询只关注K 中有效的信息位置。

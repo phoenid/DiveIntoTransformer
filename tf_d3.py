@@ -1,10 +1,4 @@
 '''
-该步实现，多头注意力机制，定义一个多头注意力机制的类：
-输入: x为位置编码后的向量，维度为(batch_size,seq_len,emd_size)
-输出：x为注意力值z,(batch_size,)
-'''
-
-'''
 # Part1引入库函数
 '''
 import torch

@@ -20,8 +20,8 @@ from tf_d2 import EmbeddingWithPosition
 from tf_d3 import MultiHeadAttention
 import math
 
-from tf_config import DEVICE
-torch.set_default_device(DEVICE)
+# from tf_config import DEVICE
+# torch.set_default_device(DEVICE)
 
 class EncoderBlock(nn.Module):
     def __init__(self,emd_size,f_size,head,v_size,q_k_size,dropout_rate):

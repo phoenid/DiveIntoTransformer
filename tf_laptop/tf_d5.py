@@ -16,8 +16,8 @@ from tf_d2 import EmbeddingWithPosition
 from tf_d1_5090 import de_vocab,train_dataset,de_preprocess,PAD_IDX
 from tf_d4 import EncoderBlock
 
-from tf_config import DEVICE
-torch.set_default_device(DEVICE)
+# from tf_config import DEVICE
+# torch.set_default_device(DEVICE)
 '''
 # Part2 定义编码器的这个类
 '''
@@ -28,9 +28,24 @@ class Encoder(nn.Module):
         # 定义编码器
         self.emd=EmbeddingWithPosition(vocab_size=vocab_size,emd_size=emd_size)
         # encoder block
-        self.encoder_block_list=[]
-        for i in range(nums_encoderblock):
-            self.encoder_block_list.append(EncoderBlock(emd_size=emd_size,f_size=f_size,head=head,v_size=v_size,q_k_size=q_k_size,dropout_rate=dropout_rate))
+
+        '''
+        mat1 is on cuda:0, different from other tensors on cpu（在 Linear 里）
+        输入已经在 GPU，但某些 Linear 的参数(weight/bias)还在 CPU。
+        根因：你的某些子模块没被注册成 Module（.to() 不会递归搬它们）
+        '''
+        # self.encoder_block_list=[]
+        # for i in range(nums_encoderblock):
+        #     self.encoder_block_list.append(EncoderBlock(emd_size=emd_size,f_size=f_size,head=head,v_size=v_size,q_k_size=q_k_size,dropout_rate=dropout_rate))
+
+        '''
+        Encoder/Decoder 里保存 block 的地方：list → nn.ModuleList
+        '''
+        self.encoder_block_list = nn.ModuleList(
+    [EncoderBlock(emd_size=emd_size, f_size=f_size, head=head, v_size=v_size,
+                  q_k_size=q_k_size, dropout_rate=dropout_rate)
+     for _ in range(nums_encoderblock)]
+    )
 
     def forward(self,x): #输出是原始的没编码过的list，不定长，(batch_size,q_seq_len)都形成不了矩阵？
         # 前提此时的x已经是PAD过的矩阵。为(batch_size,q_seq_len)
